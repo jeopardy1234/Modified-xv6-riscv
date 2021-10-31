@@ -121,8 +121,12 @@ struct proc {
   uint queue_stage;             // 0,1,2,3,4
   uint tick_counter;
   uint curr_thresh;
-  uint wtime;
+  uint wtime1;
+  uint runnable_time;
   uint time_spent_currq;
+  uint level_enter;
+
+  int level_times[NMLFQ];
 };
 
 struct Queue{

@@ -112,6 +112,7 @@ void            InitQueue();
 void            push(struct Queue *q, struct proc* el);
 void            pop(struct Queue *q);
 struct proc*    front(struct Queue *q);
+void            eraseq(struct Queue *q, int pid);
 
 // swtch.S
 void            swtch(struct context*, struct context*);

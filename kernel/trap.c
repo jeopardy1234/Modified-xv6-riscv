@@ -92,7 +92,7 @@ usertrap(void)
   if(which_dev == 2 && myproc() != 0 && myproc()->state == RUNNING && myproc()->time_spent_currq >= (1<<myproc()->queue_stage))
   {
       myproc() -> time_spent_currq = 0;
-      myproc()->queue_stage = (myproc()->queue_stage  == NMLFQ) ? NMLFQ : myproc()->queue_stage + 1;
+      myproc()->queue_stage = (myproc()->queue_stage+1  == NMLFQ) ? NMLFQ-1 : myproc()->queue_stage + 1;
       myproc()->time_spent_currq = 0;
       yield();
   }
@@ -181,7 +181,7 @@ kerneltrap()
   if(which_dev == 2 && myproc() != 0 && myproc()->state == RUNNING && myproc()->time_spent_currq >= (1<<myproc()->queue_stage))
   {
       myproc() -> time_spent_currq = 0;
-      myproc()->queue_stage = (myproc()->queue_stage  == NMLFQ) ? NMLFQ : myproc()->queue_stage + 1;
+      myproc()->queue_stage = (myproc()->queue_stage+1  == NMLFQ) ? NMLFQ-1 : myproc()->queue_stage + 1;
       myproc()->time_spent_currq = 0;
       yield();
   }
@@ -198,6 +198,7 @@ clockintr()
 {
   acquire(&tickslock);
   ticks++;
+  //myproc()->level_times[myproc()->queue_stage]++;
   update_time();
   wakeup(&ticks);
   release(&tickslock);
