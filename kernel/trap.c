@@ -78,24 +78,25 @@ usertrap(void)
 
   // give up the CPU if this is a timer interrupt.
   #ifndef FCFS
-  #ifdef MLFQ
-    //acquire(&myproc()->lock);
-    int to_release = 0;
-    if(((1 << (myproc()->queue_stage+1)) <= myproc()->rtime))
-    {
-        //myproc()->queue_stage = (myproc()->queue_stage > NMLFQ) ? 
-        // yield();
-        to_release = 1;
-    }
-    //release(&myproc()->lock);
-    if(to_release)
-        yield();
-  #else
+  #ifndef PBS
+  #ifndef MLFQ
+
   if(which_dev == 2)
     yield();
+
+  #endif
   #endif
   #endif
 
+  #ifdef MLFQ
+  if(which_dev == 2 && myproc() != 0 && myproc()->state == RUNNING && myproc()->time_spent_currq >= (1<<myproc()->queue_stage))
+  {
+      myproc() -> time_spent_currq = 0;
+      myproc()->queue_stage = (myproc()->queue_stage  == NMLFQ) ? NMLFQ : myproc()->queue_stage + 1;
+      myproc()->time_spent_currq = 0;
+      yield();
+  }
+  #endif
   usertrapret();
 }
 
@@ -158,32 +159,32 @@ kerneltrap()
     panic("kerneltrap: not from supervisor mode");
   if(intr_get() != 0)
     panic("kerneltrap: interrupts enabled");
-  #ifndef MLFQ
   if((which_dev = devintr()) == 0){
     printf("scause %p\n", scause);
     printf("sepc=%p stval=%p\n", r_sepc(), r_stval());
     panic("kerneltrap");
   }
-  #endif
 
   // give up the CPU if this is a timer interrupt.
   #ifndef FCFS
-  #ifdef MLFQ
-    //acquire(&myproc()->lock);
-    int to_release = 0;
-    if(((1 << (myproc()->queue_stage+1)) <= myproc()->rtime))
-    {
-        //myproc()->queue_stage = (myproc()->queue_stage > NMLFQ) ? 
-        // yield();
-        to_release = 1;
-    }
-    //release(&myproc()->lock);
-    if(to_release)
-        yield();
-  #else
+  #ifndef PBS
+  #ifndef MLFQ
   if(which_dev == 2 && myproc() != 0 && myproc()->state == RUNNING)
+  {
     yield();
+  }
   #endif
+  #endif
+  #endif
+
+  #ifdef MLFQ
+  if(which_dev == 2 && myproc() != 0 && myproc()->state == RUNNING && myproc()->time_spent_currq >= (1<<myproc()->queue_stage))
+  {
+      myproc() -> time_spent_currq = 0;
+      myproc()->queue_stage = (myproc()->queue_stage  == NMLFQ) ? NMLFQ : myproc()->queue_stage + 1;
+      myproc()->time_spent_currq = 0;
+      yield();
+  }
   #endif
 
   // the yield() may have caused some traps to occur,

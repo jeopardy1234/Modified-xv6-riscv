@@ -34,7 +34,7 @@ int main() {
       }
   }
   for(;n > 0; n--) {
-      if(waitx(0,&wtime,&rtime) >= 0) {
+      if(waitx(0,&rtime,&wtime) >= 0) {
           trtime += rtime;
           twtime += wtime;
       } 

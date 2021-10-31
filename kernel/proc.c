@@ -12,7 +12,7 @@ struct proc proc[NPROC];
 
 struct proc *initproc;
 
-struct Queue mlfq[NMLFQ];
+struct Queue mlfq[10000];
 
 int nextpid = 1;
 struct spinlock pid_lock;
@@ -34,10 +34,10 @@ struct spinlock wait_lock;
 
 void push(struct Queue *q, struct proc* el)
 {
-    if(q->sz >= NPROC)
-    {
-        panic("Too many processes stacked!!");
-    }
+    // if(q->sz >= NPROC)
+    // {
+    //     panic("Too many processes stacked!!");
+    // }
     q->qarr[q->tail] = el;
     q->tail = (q->tail+1)%NPROC;
     q->sz++;
@@ -167,6 +167,8 @@ found:
   p->in_queue = 0;
   p->queue_stage = 0;
   p->tick_counter = 0;
+  p->curr_thresh = 1;
+  p->time_spent_currq = 0;
   // Allocate a trapframe page.
   if((p->trapframe = (struct trapframe *)kalloc()) == 0){
     freeproc(p);
@@ -541,6 +543,7 @@ update_time()
     acquire(&p->lock);
     if (p->state == RUNNING) {
       p->rtime++;
+      p->time_spent_currq++;
     }
     release(&p->lock); 
   }
@@ -576,7 +579,7 @@ int setpriority(int newp, int pid)
 
 struct proc* MLFQ_Schedule(void)
 {
-    for(int i=0; i<NMLFQ; i++)
+    for(int i=0; i<NMLFQ-1; i++)
     {
         while(mlfq[i].sz)
         {
@@ -717,10 +720,11 @@ scheduler(void)
             struct proc *schedule_this = MLFQ_Schedule();
             if(schedule_this)
             {
+                //printf("Queue 0 size: %d %d %d %s\n", mlfq[0].sz, mlfq[0].head, mlfq[0].tail, schedule_this->name);
                 acquire(&schedule_this->lock);
                 if(schedule_this->state == RUNNABLE)
                 {
-                    
+                    schedule_this->times_chosen++;
                     schedule_this->state = RUNNING;
                     c->proc = schedule_this;
                     swtch(&c->context, &schedule_this->context);
@@ -914,6 +918,15 @@ procdump(void)
   char *state;
 
   printf("\n");
+    #ifndef MLFQ
+    #ifndef PBS
+        printf("PID \t State \t Process Name\n");
+    #endif
+    #endif
+
+    #ifdef PBS
+        printf("PID \t Priority \t State \t\t rtime \t wtime \t nrun\n");
+    #endif
   for(p = proc; p < &proc[NPROC]; p++){
     if(p->state == UNUSED)
       continue;
@@ -921,9 +934,17 @@ procdump(void)
       state = states[p->state];
     else
       state = "???";
-    printf("%d %s %s ", p->pid, state, p->name);
+    #ifndef PBS
+    #ifndef MLFQ
+        printf("%d \t %s \t %s ", p->pid, state, p->name);
+    #endif
+    #endif
+
     #ifdef PBS
-        printf("%d %d %d %d", p->dynamic_priority, p->rtime, p->niceness, p->time_stopped);
+        printf("%d \t %d \t\t %s \t %d \t %d \t %d \t",p->pid, p->dynamic_priority, state, p->rtime, p->etime - p->ctime - p->rtime,p->times_chosen);
+    #endif
+    #ifdef MLFQ
+        printf("%d %d %d", p->rtime, p->time_stopped, p->queue_stage);
     #endif
     printf("\n");
   }

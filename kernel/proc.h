@@ -120,7 +120,9 @@ struct proc {
   uint in_queue;                // Check whether the process is alr in queue
   uint queue_stage;             // 0,1,2,3,4
   uint tick_counter;
-  
+  uint curr_thresh;
+  uint wtime;
+  uint time_spent_currq;
 };
 
 struct Queue{

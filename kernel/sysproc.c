@@ -117,15 +117,12 @@ sys_uptime(void)
 }
 
 uint64
-sys_strace(void)
+sys_trace(void)
 {
   int mask;
-
   if (argint(0, &mask) < 0)
     return -1;
-
   myproc()->mask = mask;
-
   return 0;
 }
 

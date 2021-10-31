@@ -24,7 +24,7 @@ int getpid(void);
 char* sbrk(int);
 int sleep(int);
 int uptime(void);
-int strace(int);
+int trace(int);
 int setpriority(int,int);
 
 // ulib.c
