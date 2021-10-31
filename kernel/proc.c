@@ -617,8 +617,10 @@ int setpriority(int newp, int pid)
 
         if (p->pid == pid)
         {
-            oldp = p->dynamic_priority;
-            p->dynamic_priority = newp;
+            oldp = p->static_priority;
+            p->static_priority = newp;
+            p->rtime = 0;
+            p->time_stopped = 0;
             release(&p->lock);
             return oldp;
         }
