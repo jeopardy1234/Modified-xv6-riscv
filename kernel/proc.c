@@ -597,6 +597,12 @@ void update_time()
             p->rtime++;
             p->time_spent_currq++;
         }
+        else if(p->state == RUNNABLE)
+        {
+            #ifdef PBS
+                p->wtime1++;
+            #endif
+        }
         release(&p->lock);
     }
 }
@@ -1048,10 +1054,10 @@ void procdump(void)
 #endif
 
 #ifdef PBS
-        printf("%d \t %d \t\t %s \t %d \t %d \t %d \t", p->pid, p->dynamic_priority, state, p->rtime, p->etime - p->ctime - p->rtime, p->times_chosen);
+        printf("%d \t %d \t\t %s \t %d \t %d \t %d \t", p->pid, p->dynamic_priority, state, p->rtime, p->wtime1, p->times_chosen);
 #endif
 #ifdef MLFQ
-        printf("%d \t %d \t\t %s \t %d \t %d \t %d \t %d \t %d \t %d \t %d \t %d", p->pid, p->queue_stage, state, p->rtime, p->etime - p->ctime - p->rtime, p->times_chosen, p->level_times[0],p->level_times[1], p->level_times[2], p->level_times[3], p->level_times[4]);
+        printf("%d \t %d \t\t %s \t %d \t %d \t %d \t %d \t %d \t %d \t %d \t %d", p->pid, p->queue_stage, state, p->wtime1, p->times_chosen, p->level_times[0],p->level_times[1], p->level_times[2], p->level_times[3], p->level_times[4]);
 #endif
 
     printf("\n");
